@@ -2,11 +2,29 @@
 <html lang="kk">
 <head<link rel="manifest" href="manifest.json">
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+
+    // Сохранение прогресса
+    function saveState() {
+        localStorage.setItem('appState', JSON.stringify(state));
+    }
+
+    // Загрузка при открытии
+    window.onload = function() {
+        const savedState = localStorage.getItem('appState');
+        if (savedState) {
+            try {
+                state = JSON.parse(savedState);
+                if (typeof renderHome === 'function') renderHome();
+            } catch (e) {
+                console.error("Ошибка загрузки", e);
+            }
+        }
+    };
 </script>
-  >
+  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Құран сөздері — жаттау қосымшасы</title>
@@ -811,6 +829,7 @@ function answerCurrent(knew){
   if(knew) state.sessionKnownCount++;
   state.sessionIndex++;
   state.cardFlipped = false;
+  saveState(); 
   renderSession();
 }
 
