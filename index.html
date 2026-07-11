@@ -849,33 +849,39 @@ function renderSessionEnd(){
 
 /* ============ EXPORT / IMPORT PROGRESS ============ */
 async function saveProgress() {
-  // 1. Сначала пытаемся отправить в Firebase
+  const user = auth.currentUser;
+  const userId = user ? user.uid : "my_test_user";
+
   try {
-    await setDoc(doc(db, "users", "my_test_user"), {
+    await setDoc(doc(db, "users", userId), {
       progress: state.progress,
       lastSaved: new Date()
     });
-    console.log("Данные успешно отправлены в облако!");
+    console.log("Данные сохранены для пользователя:", userId);
+    showToast('Прогресс бұлтқа сақталды');
   } catch (e) {
-    console.error("Ошибка сохранения в Firebase: ", e);
+    console.error("Ошибка сохранения: ", e);
+    showToast('Бұлтқа сақтау қатесі');
   }
-
-  // 2. Затем пробуем скачать файл (если не сработает — ошибка не появится)
+// Функция регистрации
+async function registerUser(email, password) {
   try {
-    const data = JSON.stringify({ progress: state.progress, savedAt: new Date().toISOString() }, null, 2);
-    const blob = new Blob([data], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'quran-sozderi-progress.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('Прогресс файл жүктелді');
-  } catch (err) {
-    console.log("Скачивание файла заблокировано браузером, но данные в облаке сохранены.");
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    showToast('Тіркелу сәтті өтті: ' + userCredential.user.email);
+    console.log("Пользователь создан:", userCredential.user.uid);
+  } catch (error) {
+    console.error("Ошибка регистрации:", error);
+    showToast('Қате: ' + error.message);
   }
+          }
+        // Строка 877: Функция-обертка для вызова регистрации из HTML
+function handleRegister() {
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    registerUser(email, password);
+                     }
+                 }
+
 }
 
 function loadProgress(e){
@@ -907,7 +913,7 @@ renderHome();
   // Импортируем нужные библиотеки Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-analytics.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 
@@ -921,7 +927,7 @@ import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12
     appId: "1:363909681843:web:de06e94fe300598cc316c6",
     measurementId: "G-5D4SQ0EZL3"
   };
-
+        
   // Инициализация
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
