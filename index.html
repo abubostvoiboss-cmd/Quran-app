@@ -848,24 +848,9 @@ function renderSessionEnd(){
 }
 
 /* ============ EXPORT / IMPORT PROGRESS ============ */
-function saveProgress(){
-// Добавляем async перед function
 async function saveProgress() {
-  const data = JSON.stringify({ progress: state.progress, savedAt: new Date().toISOString() }, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'quran-sozderi-progress.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showToast('Прогресс файл жүктелді');
-
-  // --- ОТПРАВКА В FIREBASE ---
+  // 1. Сначала пытаемся отправить в Firebase
   try {
-    // Сохраняем в коллекцию "users" под ID "my_test_user"
     await setDoc(doc(db, "users", "my_test_user"), {
       progress: state.progress,
       lastSaved: new Date()
@@ -873,6 +858,23 @@ async function saveProgress() {
     console.log("Данные успешно отправлены в облако!");
   } catch (e) {
     console.error("Ошибка сохранения в Firebase: ", e);
+  }
+
+  // 2. Затем пробуем скачать файл (если не сработает — ошибка не появится)
+  try {
+    const data = JSON.stringify({ progress: state.progress, savedAt: new Date().toISOString() }, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'quran-sozderi-progress.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Прогресс файл жүктелді');
+  } catch (err) {
+    console.log("Скачивание файла заблокировано браузером, но данные в облаке сохранены.");
   }
 }
 
