@@ -807,53 +807,20 @@ function renderSession(){
       <button class="ans-btn dontknow" id="dontKnowBtn">Әлі есте жоқ</button>
       <button class="ans-btn know" id="knowBtn">Білемін</button>
     </div>
-  `;
-
-  document.getElementById('backBtn').addEventListener('click', ()=>{
-    state.screen='home'; renderHome();
-  });
-  const cardEl = document.getElementById('flipCard');
-  cardEl.addEventListener('click', ()=>{
-    state.cardFlipped = !state.cardFlipped;
-    cardEl.classList.toggle('flipped', state.cardFlipped);
-    document.getElementById('answerButtons').style.visibility = state.cardFlipped ? 'visible' : 'hidden';
-    document.getElementById('answerHint').textContent = state.cardFlipped ? '' : 'Жауапты білу үшін картаны түртіңіз';
-  });
-  document.getElementById('knowBtn').addEventListener('click', ()=> answerCurrent(true));
-  document.getElementById('dontKnowBtn').addEventListener('click', ()=> answerCurrent(false));
-}
-
-function answerCurrent(knew){
-  const word = state.sessionQueue[state.sessionIndex];
-  markAnswer(word.id, knew);
-  if(knew) state.sessionKnownCount++;
-  state.sessionIndex++;
-  state.cardFlipped = false;
-  saveState(); 
-  renderSession();
-}
-
-function renderSessionEnd(){
-  const total = state.sessionQueue.length;
-  const known = state.sessionKnownCount;
-  app.innerHTML = `
-    <div class="end-wrap">
-      <div class="ornament-row">${ornamentSVG()}</div>
-      <h2>Сессия аяқталды</h2>
-      <p>«${state.sessionSourceLabel}» бөлімінен ${total} сөз қаралды.<br>${known} сөзді білетініңізді белгіледіңіз.</p>
-      <button class="primary-btn" id="homeBtn">Басты бетке оралу</button>
-    </div>
-  `;
-  document.getElementById('homeBtn').addEventListener('click', ()=>{ state.screen='home'; renderHome(); });
-}
-
-/* ============ EXPORT / IMPORT PROGRESS ============ */
+  
+  /* ============ EXPORT / IMPORT PROGRESS ============ */
 async function saveProgress() {
-  const user = auth.currentUser;
+  // Проверяем, успел ли Firebase загрузиться
+  if (!window.auth || !window.db) {
+    showToast('Firebase әлі қосылмады, күте тұрыңыз');
+    return;
+  }
+  
+  const user = window.auth.currentUser;
   const userId = user ? user.uid : "my_test_user";
 
   try {
-    await setDoc(doc(db, "users", userId), {
+    await window.setDoc(window.doc(window.db, "users", userId), {
       progress: state.progress,
       lastSaved: new Date()
     });
@@ -863,25 +830,33 @@ async function saveProgress() {
     console.error("Ошибка сохранения: ", e);
     showToast('Бұлтқа сақтау қатесі');
   }
-// Функция регистрации
+}
+
 async function registerUser(email, password) {
+  if (!window.auth) {
+    showToast('Firebase әлі қосылмады');
+    return;
+  }
+  
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, password);
     showToast('Тіркелу сәтті өтті: ' + userCredential.user.email);
     console.log("Пользователь создан:", userCredential.user.uid);
   } catch (error) {
     console.error("Ошибка регистрации:", error);
     showToast('Қате: ' + error.message);
   }
-          }
-        // Строка 877: Функция-обертка для вызова регистрации из HTML
-function handleRegister() {
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    registerUser(email, password);
-                     }
-                 }
+}
 
+function handleRegister() {
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+  
+  if(email && password) {
+    registerUser(email, password);
+  } else {
+    showToast('Email және парольді толтырыңыз');
+  }
 }
 
 function loadProgress(e){
@@ -908,6 +883,41 @@ function loadProgress(e){
 /* ============ INIT ============ */
 renderHome();
 </script>
+    
+<script type="module">
+  // Импортируем нужные библиотеки Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-analytics.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  // Конфигурация вашего проекта
+  const firebaseConfig = {
+    apiKey: "AIzaSyAfkknZLuGoIS9Y_RKE9QWb-nZJpS60P08",
+    authDomain: "quran-app-bcd23.firebaseapp.com",
+    projectId: "quran-app-bcd23",
+    storageBucket: "quran-app-bcd23.firebasestorage.app",
+    messagingSenderId: "363909681843",
+    appId: "1:363909681843:web:de06e94fe300598cc316c6",
+    measurementId: "G-5D4SQ0EZL3"
+  };
+        
+  // Инициализация
+  const app = initializeApp(firebaseConfig);
+  
+  // Делаем инструменты Firebase доступными глобально для верхнего скрипта
+  window.analytics = getAnalytics(app);
+  window.auth = getAuth(app); 
+  window.db = getFirestore(app);
+  window.doc = doc;
+  window.setDoc = setDoc;
+  window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+  
+  console.log("Firebase готов к работе!");
+</script>
+    
+</body>
+</html>
     
     <script type="module">
   // Импортируем нужные библиотеки Firebase
