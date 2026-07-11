@@ -885,5 +885,28 @@ function loadProgress(e){
 /* ============ INIT ============ */
 renderHome();
 </script>
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAfkknZLuGoIS9Y_RKE9QWb-nZJpS60P08",
+    authDomain: "quran-app-bcd23.firebaseapp.com",
+    projectId: "quran-app-bcd23",
+    storageBucket: "quran-app-bcd23.firebasestorage.app",
+    messagingSenderId: "363909681843",
+    appId: "1:363909681843:web:de06e94fe300598cc316c6",
+    measurementId: "G-5D4SQ0EZL3"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+    </script>
 </body>
 </html>
